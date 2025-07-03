@@ -5,20 +5,30 @@
     <title>VR Giraffe</title>
     <meta name="description" content="Giraffe VR View">
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <style>
+      .a-enter-vr-button {
+        position: absolute !important;
+        bottom: 20px !important;
+        top: auto !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        z-index: 9999;
+      }
+    </style>
   </head>
   <body>
     <a-scene>
-        <a-assets>
-          <a-asset-item id="giraffeModel" src="giraffe.glb"></a-asset-item>
-        </a-assets>
-      
-        <a-entity gltf-model="https://api.ipstudyhub.com/api/master/DownloadGlbFile?fileName=ded0feec-a12c-4980-adbf-5fe72caa969d_VR_Giraffe.glb"
-          position="0 1.6 -2"
-          rotation="0 180 0"
-          scale="1 1 1">
-</a-entity>
-      
-        <a-entity camera look-controls wasd-controls position="0 1.6 0"></a-entity>
-      </a-scene>
+      <a-assets>
+        <a-asset-item id="giraffeModel" src="giraffe.glb"></a-asset-item>
+      </a-assets>
+    
+      <a-entity gltf-model="https://api.ipstudyhub.com/api/master/DownloadGlbFile?fileName=ded0feec-a12c-4980-adbf-5fe72caa969d_VR_Giraffe.glb"
+        position="0 1.6 -2"
+        rotation="0 180 0"
+        scale="1 1 1">
+      </a-entity>
+    
+      <a-entity camera look-controls wasd-controls position="0 1.6 0"></a-entity>
+    </a-scene>
   </body>
 </html>
