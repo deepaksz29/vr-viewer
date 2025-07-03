@@ -7,17 +7,18 @@
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
   </head>
   <body>
-    <a-scene vr-mode-ui="enabled: true" embedded>
-      <!-- Load .glb model directly -->
-      <a-entity gltf-model="https://api.ipstudyhub.com/api/master/DownloadGlbFile?fileName=ded0feec-a12c-4980-adbf-5fe72caa969d_VR_Giraffe.glb"
-                position="0 1.6 -2"
-                rotation="0 180 0"
-                scale="1 1 1">
-      </a-entity>
-
-      <!-- Camera for VR -->
-      <a-entity camera look-controls wasd-controls position="0 1.6 0"></a-entity>
-    </a-scene>
+    <a-scene>
+        <a-assets>
+          <a-asset-item id="giraffeModel" src="giraffe.glb"></a-asset-item>
+        </a-assets>
+      
+        <a-entity gltf-model="https://api.ipstudyhub.com/api/master/DownloadGlbFile?fileName=ded0feec-a12c-4980-adbf-5fe72caa969d_VR_Giraffe.glb"
+          position="0 1.6 -2"
+          rotation="0 180 0"
+          scale="1 1 1">
+</a-entity>
+      
+        <a-entity camera look-controls wasd-controls position="0 1.6 0"></a-entity>
+      </a-scene>
   </body>
 </html>
-
