@@ -103,7 +103,7 @@
 
       // Fetch data from the API based on ID
       async function GetDataFromAPIWithID(id) {
-        const urlWithParam = ${apiUrl}?id=${id};
+        const urlWithParam = `${apiUrl}?id=${id}`;
 
         try {
           const response = await fetch(urlWithParam);
