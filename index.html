@@ -1,34 +1,161 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <meta charset="utf-8">
-    <title>VR Giraffe</title>
-    <meta name="description" content="Giraffe VR View">
-    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no, minimal-ui, viewport-fit=cover"
+    />
+    <title>Cardboard VR Model</title>
+
+    <!-- A-Frame and WebVR Polyfill -->
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/webvr-polyfill/0.10.10/webvr-polyfill.min.js"></script>
+
+    <!-- Fullscreen and App-like Meta Tags for iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    
+    <!-- Safari 15+ Status Bar Color -->
+    <meta name="theme-color" content="black" />
+
+    <!-- Lock Orientation in Landscape -->
+    <meta name="screen-orientation" content="landscape" />
+    <meta name="x5-orientation" content="landscape" />
+    <meta name="x5-fullscreen" content="true" />
+    <meta name="full-screen" content="yes" />
+
     <style>
-      .a-enter-vr-button {
-        position: absolute !important;
-        bottom: 20px !important;
-        top: auto !important;
-        left: 50% !important;
-        transform: translateX(-50%) !important;
-        z-index: 9999;
+      /* Fullscreen style for body to remove browser chrome */
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+        overflow: hidden;
+        touch-action: none;
+      }
+      a-scene {
+        height: 100%;
+        width: 100%;
+      }
+      .progress-bar {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 300px;
+        height: 30px;
+        background-color: #f3f3f3;
+        border-radius: 5px;
+        display: none;
+      }
+      .progress {
+        height: 100%;
+        background-color: #4caf50;
+        border-radius: 5px;
+        width: 0%;
       }
     </style>
   </head>
+
   <body>
-    <a-scene>
-      <a-assets>
-        <a-asset-item id="giraffeModel" src="giraffe.glb"></a-asset-item>
-      </a-assets>
-    
-      <a-entity gltf-model="https://api.ipstudyhub.com/api/master/DownloadGlbFile?fileName=ded0feec-a12c-4980-adbf-5fe72caa969d_VR_Giraffe.glb"
-        position="0 1.6 -2"
-        rotation="0 180 0"
-        scale="1 1 1">
+    <a-scene embedded>
+      <!-- Camera with Look Controls for VR -->
+      <a-entity id="cameraRig" position="0 1.6 0">
+        <a-entity
+          id="camera"
+          camera
+          look-controls
+          wasd-controls
+          position="0 0 0"
+        ></a-entity>
       </a-entity>
-    
-      <a-entity camera look-controls wasd-controls position="0 1.6 0"></a-entity>
+
+      <!-- 3D Model Placeholder -->
+      <a-entity id="model" scale="10 10 10" position="0 0 -3"></a-entity>
+
+      <!-- Sky Background -->
+      <a-sky color="#ECECEC"></a-sky>
+
+      <!-- Lighting -->
+      <a-light type="ambient" color="#FFF"></a-light>
+      <a-light type="directional" intensity="1" position="-1 2 3"></a-light>
     </a-scene>
+
+    <!-- Progress Bar -->
+    <div id="progress-bar" class="progress-bar">
+      <div id="progress" class="progress"></div>
+    </div>
+
+    <!-- Script to Extract ID from URL, Fetch API, and Load GLB Model -->
+    <script>
+      const apiUrl = 'https://api.ipstudyhub.com/api/master/GetObjectMaster';
+      let glburl = null;
+
+      // Function to get the query parameter from the URL
+      function getQueryParam(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+      }
+
+      // Fetch data from the API based on ID
+      async function GetDataFromAPIWithID(id) {
+        const urlWithParam = ${apiUrl}?id=${id};
+
+        try {
+          const response = await fetch(urlWithParam);
+          const json = await response.json();
+
+          if (json && json.data) {
+            glburl = json.data.path_Android_Tech;
+            if (glburl) {
+              LoadVRObject(glburl);
+            }
+          } else {
+            console.error('Error: No data found for the provided ID');
+          }
+        } catch (error) {
+          console.error('Error fetching data from API:', error);
+        }
+      }
+
+      // Function to load the VR object (GLB)
+      function LoadVRObject(glburl) {
+        const modelEntity = document.getElementById('model');
+        const fileName = glburl.split('/').pop();
+        console.log('Loading file:', fileName);
+
+        // Show progress bar
+        document.getElementById('progress-bar').style.display = 'block';
+
+        // Set the gltf-model attribute to load the model
+        modelEntity.setAttribute('gltf-model', glburl);
+
+        // Simulate loading progress
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+          progress += 10;
+          document.getElementById('progress').style.width = progress + '%';
+
+          if (progress >= 100) {
+            clearInterval(progressInterval);
+            document.getElementById('progress-bar').style.display = 'none';
+          }
+        }, 500); // Simulated progress
+      }
+
+      // Check for 'id' in the URL and fetch the model if found
+      window.onload = function () {
+        const receivedId = getQueryParam('id');
+        if (receivedId) {
+          GetDataFromAPIWithID(receivedId);
+        } else {
+          alert("No ID found in the URL. Please provide an ID.");
+        }
+      };
+    </script>
   </body>
 </html>
