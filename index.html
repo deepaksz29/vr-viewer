@@ -12,179 +12,150 @@
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/webvr-polyfill/0.10.10/webvr-polyfill.min.js"></script>
 
-    <!-- App-like Meta Tags -->
+    <!-- Fullscreen and App-like Meta Tags for iOS -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="mobile-web-app-capable" content="yes" />
+    
+    <!-- Safari 15+ Status Bar Color -->
     <meta name="theme-color" content="black" />
+
+    <!-- Lock Orientation in Landscape -->
     <meta name="screen-orientation" content="landscape" />
+    <meta name="x5-orientation" content="landscape" />
+    <meta name="x5-fullscreen" content="true" />
+    <meta name="full-screen" content="yes" />
 
     <style>
-      html, body {
+      /* Fullscreen style for body to remove browser chrome */
+      html,
+      body {
         margin: 0;
         padding: 0;
         height: 100%;
         width: 100%;
         overflow: hidden;
         touch-action: none;
-        background-color: #000;
       }
       a-scene {
         height: 100%;
         width: 100%;
       }
-      
-      /* --- NEW: Style for the overlay --- */
-      #overlay {
+      .progress-bar {
         position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 300px;
+        height: 30px;
+        background-color: #f3f3f3;
+        border-radius: 5px;
+        display: none;
+      }
+      .progress {
         height: 100%;
-        background-color: rgba(0, 0, 0, 0.9);
-        color: white;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        text-align: center;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        font-size: 1.5rem;
-        cursor: pointer;
-        z-index: 10000;
-      }
-
-      /* --- NEW: A simple CSS spinner for the loading state --- */
-      .spinner {
-        border: 8px solid #f3f3f3; /* Light grey */
-        border-top: 8px solid #3498db; /* Blue */
-        border-radius: 50%;
-        width: 60px;
-        height: 60px;
-        animation: spin 1s linear infinite;
-        margin-bottom: 20px;
-      }
-
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-      
-      /* Hide elements by default */
-      .hidden {
-        display: none !important;
+        background-color: #4caf50;
+        border-radius: 5px;
+        width: 0%;
       }
     </style>
   </head>
 
   <body>
-    <!-- NEW: A single overlay for all states (Tap to start, Loading) -->
-    <div id="overlay">
-      <!-- "Tap to Enter" State -->
-      <div id="start-prompt">
-        <h2>VR Experience</h2>
-        <p style="font-size: 1rem;">Tap to Enter</p>
-      </div>
-
-      <!-- "Loading" State -->
-      <div id="loading-indicator" class="hidden">
-        <div class="spinner"></div>
-        <p>Loading Model...</p>
-      </div>
-    </div>
-
-    <!-- The A-Frame scene, with default UI disabled -->
-    <a-scene embedded vr-mode-ui="enabled: false">
+    <a-scene embedded>
+      <!-- Camera with Look Controls for VR -->
       <a-entity id="cameraRig" position="0 1.6 0">
-        <a-entity id="camera" camera look-controls wasd-controls position="0 0 0"></a-entity>
+        <a-entity
+          id="camera"
+          camera
+          look-controls
+          wasd-controls
+          position="0 0 0"
+        ></a-entity>
       </a-entity>
 
-      <!-- Model placeholder -->
+      <!-- 3D Model Placeholder -->
       <a-entity id="model" scale="10 10 10" position="0 0 -3"></a-entity>
 
+      <!-- Sky Background -->
       <a-sky color="#ECECEC"></a-sky>
+
+      <!-- Lighting -->
       <a-light type="ambient" color="#FFF"></a-light>
       <a-light type="directional" intensity="1" position="-1 2 3"></a-light>
     </a-scene>
 
+    <!-- Progress Bar -->
+    <div id="progress-bar" class="progress-bar">
+      <div id="progress" class="progress"></div>
+    </div>
+
+    <!-- Script to Extract ID from URL, Fetch API, and Load GLB Model -->
     <script>
       const apiUrl = 'https://api.ipstudyhub.com/api/master/GetObjectMaster';
-      const sceneEl = document.querySelector('a-scene');
-      const modelEl = document.getElementById('model');
-      const overlayEl = document.getElementById('overlay');
-      const startPromptEl = document.getElementById('start-prompt');
-      const loadingIndicatorEl = document.getElementById('loading-indicator');
+      let glburl = null;
 
       // Function to get the query parameter from the URL
       function getQueryParam(param) {
         const urlParams = new URLSearchParams(window.location.search);
         return urlParams.get(param);
       }
-      
-      // Event listener for when the model has finished loading
-      modelEl.addEventListener('model-loaded', function () {
-        console.log("Model has loaded!");
-        // Hide the overlay completely
-        overlayEl.classList.add('hidden');
-        // Because this was triggered by a user tap, we can now enter VR!
-        sceneEl.enterVR(); 
-      });
 
-      // Event listener for any loading errors
-      modelEl.addEventListener('model-error', function (e) {
-        console.error("Model error:", e.detail);
-        alert("Sorry, there was an error loading the 3D model.");
-        // Hide loading and show the start prompt again
-        loadingIndicatorEl.classList.add('hidden');
-        startPromptEl.classList.remove('hidden');
-      });
-
-      // Main function to start the experience
-      async function startExperience() {
-        // Switch the overlay from "Tap to Enter" to "Loading"
-        startPromptEl.classList.add('hidden');
-        loadingIndicatorEl.classList.remove('hidden');
-
-        const id = getQueryParam('id');
-        if (!id) {
-            alert("No ID found in the URL.");
-            // Reset UI on error
-            loadingIndicatorEl.classList.add('hidden');
-            startPromptEl.classList.remove('hidden');
-            return;
-        }
-
+      // Fetch data from the API based on ID
+      async function GetDataFromAPIWithID(id) {
         const urlWithParam = `${apiUrl}?id=${id}`;
 
         try {
           const response = await fetch(urlWithParam);
-          if (!response.ok) {
-            throw new Error(`API responded with status ${response.status}`);
-          }
           const json = await response.json();
 
-          if (json && json.data && json.data.path_Android_Tech) {
-            const glburl = json.data.path_Android_Tech;
-            
-            // Set the gltf-model attribute. This starts the download.
-            // The event listeners above will handle what happens next.
-            modelEl.setAttribute('gltf-model', glburl);
-            
+          if (json && json.data) {
+            glburl = json.data.path_Android_Tech;
+            if (glburl) {
+              LoadVRObject(glburl);
+            }
           } else {
-            throw new Error('No valid model path found in API response.');
+            console.error('Error: No data found for the provided ID');
           }
         } catch (error) {
-            // This catches API errors or bad data
-            console.error('Error fetching or processing API data:', error);
-            alert('An error occurred while getting the 3D model link.');
-            // Reset UI on error
-            loadingIndicatorEl.classList.add('hidden');
-            startPromptEl.classList.remove('hidden');
+          console.error('Error fetching data from API:', error);
         }
       }
 
-      // Add the click listener to our overlay to start everything.
-      // { once: true } ensures it only fires one time.
-      overlayEl.addEventListener('click', startExperience, { once: true });
+      // Function to load the VR object (GLB)
+      function LoadVRObject(glburl) {
+        const modelEntity = document.getElementById('model');
+        const fileName = glburl.split('/').pop();
+        console.log('Loading file:', fileName);
+
+        // Show progress bar
+        document.getElementById('progress-bar').style.display = 'block';
+
+        // Set the gltf-model attribute to load the model
+        modelEntity.setAttribute('gltf-model', glburl);
+
+        // Simulate loading progress
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+          progress += 10;
+          document.getElementById('progress').style.width = progress + '%';
+
+          if (progress >= 100) {
+            clearInterval(progressInterval);
+            document.getElementById('progress-bar').style.display = 'none';
+          }
+        }, 500); // Simulated progress
+      }
+
+      // Check for 'id' in the URL and fetch the model if found
+      window.onload = function () {
+        const receivedId = getQueryParam('id');
+        if (receivedId) {
+          GetDataFromAPIWithID(receivedId);
+        } else {
+          alert("No ID found in the URL. Please provide an ID.");
+        }
+      };
     </script>
   </body>
 </html>
