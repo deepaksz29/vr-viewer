@@ -20,12 +20,12 @@
   }
 </style>
 
-<!-- ✅ THREE.JS r149 (LAST NON-MODULE STABLE VERSION) -->
+<!-- THREE.JS r149 (WebView + OrbitControls SAFE) -->
 <script src="https://unpkg.com/three@0.149.0/build/three.min.js"></script>
 <script src="https://unpkg.com/three@0.149.0/examples/js/controls/OrbitControls.js"></script>
 <script src="https://unpkg.com/three@0.149.0/examples/js/loaders/GLTFLoader.js"></script>
-
 </head>
+
 <body>
 
 <script>
@@ -35,46 +35,47 @@ init();
 animate();
 
 function init() {
+  // Scene
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0xececec);
 
+  // Camera
   camera = new THREE.PerspectiveCamera(
     60,
     window.innerWidth / window.innerHeight,
     0.1,
     1000
   );
-
-  // 🔥 CAMERA START POSITION (IMPORTANT)
   camera.position.set(0, 0, 5);
 
+  // Renderer
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(window.devicePixelRatio);
   document.body.appendChild(renderer.domElement);
 
-  // ✅ ORBIT CONTROLS (NOW IT WORKS)
+  // Controls (ROTATE + ZOOM)
   controls = new THREE.OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
   controls.dampingFactor = 0.08;
   controls.enableZoom = true;
   controls.enableRotate = true;
 
-  // LIGHTS
+  // Lights
   scene.add(new THREE.AmbientLight(0xffffff, 1));
-  const dir = new THREE.DirectionalLight(0xffffff, 1);
-  dir.position.set(3, 5, 5);
-  scene.add(dir);
+  const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+  dirLight.position.set(3, 5, 5);
+  scene.add(dirLight);
 
-  // LOAD MODEL
+  // Load GLB (SAME DOMAIN)
   const loader = new THREE.GLTFLoader();
   loader.load(
-    "https://api.ipstudyhub.com/api/master/Download_interactive3dglbFile?fileName=71875cc3-44ff-4fa1-95cd-319bf07ce253_VR_Apple_Interactive.glb",
+    "models/apple.glb",
     function (gltf) {
       const model = gltf.scene;
       scene.add(model);
 
-      // AUTO CENTER + FIT
+      // Auto-center & fit
       const box = new THREE.Box3().setFromObject(model);
       const size = box.getSize(new THREE.Vector3()).length();
       const center = box.getCenter(new THREE.Vector3());
@@ -86,7 +87,7 @@ function init() {
     },
     undefined,
     function (error) {
-      console.error("❌ GLB load error:", error);
+      console.error("GLB load error:", error);
     }
   );
 
