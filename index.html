@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>3D Model Viewer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D Model Test</title>
 
 <style>
   html, body {
@@ -14,24 +14,26 @@
     overflow: hidden;
     background: #ececec;
   }
-  canvas { display: block; }
 </style>
 
-<!-- ✅ STABLE CDN (IMPORTANT) -->
-<script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.149.0/examples/js/controls/OrbitControls.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.149.0/examples/js/loaders/GLTFLoader.js"></script>
+<!-- ONLY THREE + LOADER (NO CONTROLS) -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.125.2/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.125.2/examples/js/loaders/GLTFLoader.js"></script>
 </head>
 
 <body>
 
 <script>
-let scene, camera, renderer, controls;
+console.log("JS STARTED");
+
+let scene, camera, renderer;
 
 init();
 animate();
 
 function init() {
+  console.log("INIT CALLED");
+
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0xececec);
 
@@ -42,46 +44,37 @@ function init() {
   renderer.setSize(window.innerWidth, window.innerHeight);
   document.body.appendChild(renderer.domElement);
 
-  // ✅ THIS IS THE CORRECT LINE
-  controls = new THREE.OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true;
-  controls.dampingFactor = 0.08;
-
   scene.add(new THREE.AmbientLight(0xffffff, 1));
   const light = new THREE.DirectionalLight(0xffffff, 1);
   light.position.set(3, 5, 5);
   scene.add(light);
 
+  console.log("START LOADING MODEL");
+
   const loader = new THREE.GLTFLoader();
   loader.load(
     "models/apple.glb",
-    (gltf) => {
+    function (gltf) {
+      console.log("MODEL LOADED");
+
       const model = gltf.scene;
       scene.add(model);
 
       const box = new THREE.Box3().setFromObject(model);
-      const size = box.getSize(new THREE.Vector3()).length();
       const center = box.getCenter(new THREE.Vector3());
-
       model.position.sub(center);
-      camera.position.set(0, 0, size * 0.6);
-      controls.target.set(0, 0, 0);
-      controls.update();
     },
-    undefined,
-    (e) => console.error("GLB load error", e)
+    function (xhr) {
+      console.log("LOADING...", (xhr.loaded / xhr.total) * 100 + "%");
+    },
+    function (error) {
+      console.error("MODEL LOAD ERROR", error);
+    }
   );
-
-  window.addEventListener("resize", () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-  });
 }
 
 function animate() {
   requestAnimationFrame(animate);
-  controls.update();
   renderer.render(scene, camera);
 }
 </script>
