@@ -1,161 +1,134 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, user-scalable=no, minimal-ui, viewport-fit=cover"
-    />
-    <title>Cardboard VR Model</title>
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, user-scalable=no"
+  />
+  <title>3D Model Viewer</title>
 
-    <!-- A-Frame and WebVR Polyfill -->
-    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/webvr-polyfill/0.10.10/webvr-polyfill.min.js"></script>
+  <!-- A-Frame -->
+  <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
 
-    <!-- Fullscreen and App-like Meta Tags for iOS -->
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    
-    <!-- Safari 15+ Status Bar Color -->
-    <meta name="theme-color" content="black" />
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      background: #ececec;
+    }
 
-    <!-- Lock Orientation in Landscape -->
-    <meta name="screen-orientation" content="landscape" />
-    <meta name="x5-orientation" content="landscape" />
-    <meta name="x5-fullscreen" content="true" />
-    <meta name="full-screen" content="yes" />
+    a-scene {
+      height: 100%;
+      width: 100%;
+    }
 
-    <style>
-      /* Fullscreen style for body to remove browser chrome */
-      html,
-      body {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        width: 100%;
-        overflow: hidden;
-        touch-action: none;
+    .progress-bar {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 300px;
+      height: 30px;
+      background-color: #ddd;
+      border-radius: 5px;
+      display: none;
+    }
+
+    .progress {
+      height: 100%;
+      background-color: #4caf50;
+      border-radius: 5px;
+      width: 0%;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ✅ 3D ONLY SCENE -->
+  <a-scene embedded vr-mode-ui="enabled: false">
+
+    <!-- ✅ Camera (NO VR) -->
+    <a-entity
+      camera
+      position="0 1.5 4"
+      orbit-controls="target: 0 1 0; minDistance: 2; maxDistance: 10"
+    ></a-entity>
+
+    <!-- ✅ 3D Model -->
+    <a-entity
+      id="model"
+      position="0 0 0"
+      scale="1 1 1">
+    </a-entity>
+
+    <!-- ✅ Lighting -->
+    <a-light type="ambient" intensity="0.8"></a-light>
+    <a-light type="directional" intensity="1" position="2 4 5"></a-light>
+
+    <!-- Background -->
+    <a-sky color="#ECECEC"></a-sky>
+
+  </a-scene>
+
+  <!-- Loader -->
+  <div id="progress-bar" class="progress-bar">
+    <div id="progress" class="progress"></div>
+  </div>
+
+<script>
+  const apiUrl = 'https://api.ipstudyhub.com/api/master/GetObjectMaster';
+
+  function getQueryParam(param) {
+    return new URLSearchParams(window.location.search).get(param);
+  }
+
+  async function GetDataFromAPIWithID(id) {
+    try {
+      const response = await fetch(`${apiUrl}?id=${id}`);
+      const json = await response.json();
+
+      if (json?.data?.path_Android_Tech) {
+        loadModel(json.data.path_Android_Tech);
+      } else {
+        alert("GLB path nahi mila");
       }
-      a-scene {
-        height: 100%;
-        width: 100%;
+    } catch (e) {
+      console.error("API error", e);
+    }
+  }
+
+  function loadModel(glbUrl) {
+    const model = document.getElementById("model");
+
+    document.getElementById("progress-bar").style.display = "block";
+
+    model.setAttribute("gltf-model", glbUrl);
+
+    let p = 0;
+    const timer = setInterval(() => {
+      p += 20;
+      document.getElementById("progress").style.width = p + "%";
+      if (p >= 100) {
+        clearInterval(timer);
+        document.getElementById("progress-bar").style.display = "none";
       }
-      .progress-bar {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 300px;
-        height: 30px;
-        background-color: #f3f3f3;
-        border-radius: 5px;
-        display: none;
-      }
-      .progress {
-        height: 100%;
-        background-color: #4caf50;
-        border-radius: 5px;
-        width: 0%;
-      }
-    </style>
-  </head>
+    }, 300);
+  }
 
-  <body>
-    <a-scene embedded>
-      <!-- Camera with Look Controls for VR -->
-      <a-entity id="cameraRig" position="0 1.6 0">
-        <a-entity
-          id="camera"
-          camera
-          look-controls
-          wasd-controls
-          position="0 0 0"
-        ></a-entity>
-      </a-entity>
+  window.onload = () => {
+    const id = getQueryParam("id");
+    if (id) {
+      GetDataFromAPIWithID(id);
+    } else {
+      alert("URL me id missing hai");
+    }
+  };
+</script>
 
-      <!-- 3D Model Placeholder -->
-      <a-entity id="model" scale="10 10 10" position="0 0 -3"></a-entity>
-
-      <!-- Sky Background -->
-      <a-sky color="#ECECEC"></a-sky>
-
-      <!-- Lighting -->
-      <a-light type="ambient" color="#FFF"></a-light>
-      <a-light type="directional" intensity="1" position="-1 2 3"></a-light>
-    </a-scene>
-
-    <!-- Progress Bar -->
-    <div id="progress-bar" class="progress-bar">
-      <div id="progress" class="progress"></div>
-    </div>
-
-    <!-- Script to Extract ID from URL, Fetch API, and Load GLB Model -->
-    <script>
-      const apiUrl = 'https://api.ipstudyhub.com/api/master/GetObjectMaster';
-      let glburl = null;
-
-      // Function to get the query parameter from the URL
-      function getQueryParam(param) {
-        const urlParams = new URLSearchParams(window.location.search);
-        return urlParams.get(param);
-      }
-
-      // Fetch data from the API based on ID
-      async function GetDataFromAPIWithID(id) {
-        const urlWithParam = `${apiUrl}?id=${id}`;
-
-        try {
-          const response = await fetch(urlWithParam);
-          const json = await response.json();
-
-          if (json && json.data) {
-            glburl = json.data.path_Android_Tech;
-            if (glburl) {
-              LoadVRObject(glburl);
-            }
-          } else {
-            console.error('Error: No data found for the provided ID');
-          }
-        } catch (error) {
-          console.error('Error fetching data from API:', error);
-        }
-      }
-
-      // Function to load the VR object (GLB)
-      function LoadVRObject(glburl) {
-        const modelEntity = document.getElementById('model');
-        const fileName = glburl.split('/').pop();
-        console.log('Loading file:', fileName);
-
-        // Show progress bar
-        document.getElementById('progress-bar').style.display = 'block';
-
-        // Set the gltf-model attribute to load the model
-        modelEntity.setAttribute('gltf-model', glburl);
-
-        // Simulate loading progress
-        let progress = 0;
-        const progressInterval = setInterval(() => {
-          progress += 10;
-          document.getElementById('progress').style.width = progress + '%';
-
-          if (progress >= 100) {
-            clearInterval(progressInterval);
-            document.getElementById('progress-bar').style.display = 'none';
-          }
-        }, 500); // Simulated progress
-      }
-
-      // Check for 'id' in the URL and fetch the model if found
-      window.onload = function () {
-        const receivedId = getQueryParam('id');
-        if (receivedId) {
-          GetDataFromAPIWithID(receivedId);
-        } else {
-          alert("No ID found in the URL. Please provide an ID.");
-        }
-      };
-    </script>
-  </body>
+</body>
 </html>
