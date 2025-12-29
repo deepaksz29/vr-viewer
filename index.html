@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, user-scalable=no"
-  />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <title>3D Model Viewer</title>
 
   <!-- A-Frame -->
   <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+
+  <!-- 🔥 Orbit Controls (REQUIRED for rotate/zoom) -->
+  <script src="https://cdn.jsdelivr.net/npm/aframe-orbit-controls-component@0.3.2/dist/aframe-orbit-controls-component.min.js"></script>
 
   <style>
     html, body {
@@ -20,115 +20,47 @@
       overflow: hidden;
       background: #ececec;
     }
-
     a-scene {
       height: 100%;
       width: 100%;
-    }
-
-    .progress-bar {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 300px;
-      height: 30px;
-      background-color: #ddd;
-      border-radius: 5px;
-      display: none;
-    }
-
-    .progress {
-      height: 100%;
-      background-color: #4caf50;
-      border-radius: 5px;
-      width: 0%;
     }
   </style>
 </head>
 
 <body>
 
-  <!-- ✅ 3D ONLY SCENE -->
-  <a-scene embedded vr-mode-ui="enabled: false">
+<a-scene embedded vr-mode-ui="enabled: false">
 
-    <!-- ✅ Camera (NO VR) -->
-    <a-entity
-      camera
-      position="0 1.5 4"
-      orbit-controls="target: 0 1 0; minDistance: 2; maxDistance: 10"
-    ></a-entity>
+  <!-- ✅ Camera with ORBIT (rotate / zoom / pan) -->
+  <a-entity
+    camera
+    position="0 1.5 4"
+    orbit-controls="
+      target: 0 1 0;
+      enableDamping: true;
+      dampingFactor: 0.15;
+      rotateSpeed: 0.3;
+      zoomSpeed: 0.8;
+      minDistance: 2;
+      maxDistance: 8;
+    ">
+  </a-entity>
 
-    <!-- ✅ 3D Model -->
-    <a-entity
-      id="model"
-      position="0 0 0"
-      scale="1 1 1">
-    </a-entity>
+  <!-- ✅ 3D MODEL -->
+  <a-entity
+    gltf-model="https://ipstudyhub.com/api/master/Download_interactive3dglbFile?fileName=71875cc3-44ff-4fa1-95cd-319bf07ce253_VR_Apple_Interactive.glb"
+    position="0 0 0"
+    scale="1 1 1">
+  </a-entity>
 
-    <!-- ✅ Lighting -->
-    <a-light type="ambient" intensity="0.8"></a-light>
-    <a-light type="directional" intensity="1" position="2 4 5"></a-light>
+  <!-- Lights -->
+  <a-light type="ambient" intensity="0.9"></a-light>
+  <a-light type="directional" intensity="1" position="2 4 5"></a-light>
 
-    <!-- Background -->
-    <a-sky color="#ECECEC"></a-sky>
+  <!-- Background -->
+  <a-sky color="#ECECEC"></a-sky>
 
-  </a-scene>
-
-  <!-- Loader -->
-  <div id="progress-bar" class="progress-bar">
-    <div id="progress" class="progress"></div>
-  </div>
-
-<script>
-  const apiUrl = 'https://api.ipstudyhub.com/api/master/GetObjectMaster';
-
-  function getQueryParam(param) {
-    return new URLSearchParams(window.location.search).get(param);
-  }
-
-  async function GetDataFromAPIWithID(id) {
-    try {
-      const response = await fetch(`${apiUrl}?id=${id}`);
-      const json = await response.json();
-
-      if (json?.data?.path_Android_Tech) {
-        loadModel(json.data.path_Android_Tech);
-      } else {
-        alert("GLB path nahi mila");
-      }
-    } catch (e) {
-      console.error("API error", e);
-    }
-  }
-
-  function loadModel(glbUrl) {
-    const model = document.getElementById("model");
-
-    document.getElementById("progress-bar").style.display = "block";
-
-    model.setAttribute("gltf-model", glbUrl);
-
-    let p = 0;
-    const timer = setInterval(() => {
-      p += 20;
-      document.getElementById("progress").style.width = p + "%";
-      if (p >= 100) {
-        clearInterval(timer);
-        document.getElementById("progress-bar").style.display = "none";
-      }
-    }, 300);
-  }
-
-  window.onload = () => {
-    const id = getQueryParam("id");
-    if (id) {
-      GetDataFromAPIWithID(id);
-    } else {
-      alert("URL me id missing hai");
-    }
-  };
-</script>
+</a-scene>
 
 </body>
 </html>
