@@ -29,25 +29,30 @@
 
 <body>
 
-<a-scene embedded vr-mode-ui="enabled: false">
+<a-scene
+  embedded
+  vr-mode-ui="enabled: false"
+  cursor="rayOrigin: mouse">
 
-  <!-- Camera with rotate / zoom -->
+  <!-- ✅ Camera (ROTATE + ZOOM WORKING) -->
   <a-entity
-    id="camera"
     camera
     position="0 1.5 4"
     orbit-controls="
       target: 0 1 0;
       enableDamping: true;
       dampingFactor: 0.15;
-      rotateSpeed: 0.4;
-      zoomSpeed: 0.9;
+      rotateSpeed: 0.5;
+      zoomSpeed: 1;
+      panSpeed: 0.8;
       minDistance: 2;
       maxDistance: 8;
+      mouseButtons: LEFT, MIDDLE, RIGHT;
+      touchEnabled: true;
     ">
   </a-entity>
 
-  <!-- 3D MODEL HOLDER -->
+  <!-- 3D MODEL -->
   <a-entity
     id="model"
     position="0 0 0"
@@ -55,7 +60,7 @@
   </a-entity>
 
   <!-- Lights -->
-  <a-light type="ambient" intensity="0.9"></a-light>
+  <a-light type="ambient" intensity="1"></a-light>
   <a-light type="directional" intensity="1" position="2 4 5"></a-light>
 
   <!-- Background -->
@@ -67,10 +72,10 @@
   const glbUrl =
     "https://api.ipstudyhub.com/api/master/Download_interactive3dglbFile?fileName=71875cc3-44ff-4fa1-95cd-319bf07ce253_VR_Apple_Interactive.glb";
 
-  window.onload = () => {
-    const model = document.getElementById("model");
-    model.setAttribute("gltf-model", glbUrl);
-  };
+  window.addEventListener("load", () => {
+    document.getElementById("model")
+      .setAttribute("gltf-model", glbUrl);
+  });
 </script>
 
 </body>
