@@ -20,7 +20,7 @@
   }
 </style>
 
-<!-- THREE.JS r149 (WebView + OrbitControls SAFE) -->
+<!-- THREE.JS r149 (WebView SAFE) -->
 <script src="https://unpkg.com/three@0.149.0/build/three.min.js"></script>
 <script src="https://unpkg.com/three@0.149.0/examples/js/controls/OrbitControls.js"></script>
 <script src="https://unpkg.com/three@0.149.0/examples/js/loaders/GLTFLoader.js"></script>
@@ -35,11 +35,9 @@ init();
 animate();
 
 function init() {
-  // Scene
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0xececec);
 
-  // Camera
   camera = new THREE.PerspectiveCamera(
     60,
     window.innerWidth / window.innerHeight,
@@ -48,26 +46,23 @@ function init() {
   );
   camera.position.set(0, 0, 5);
 
-  // Renderer
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(window.devicePixelRatio);
   document.body.appendChild(renderer.domElement);
 
-  // Controls (ROTATE + ZOOM)
-  controls = new THREE.OrbitControls(camera, renderer.domElement);
+  // ✅ FIXED LINE (IMPORTANT)
+  controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
   controls.dampingFactor = 0.08;
   controls.enableZoom = true;
   controls.enableRotate = true;
 
-  // Lights
   scene.add(new THREE.AmbientLight(0xffffff, 1));
   const dirLight = new THREE.DirectionalLight(0xffffff, 1);
   dirLight.position.set(3, 5, 5);
   scene.add(dirLight);
 
-  // Load GLB (SAME DOMAIN)
   const loader = new THREE.GLTFLoader();
   loader.load(
     "models/apple.glb",
@@ -75,7 +70,6 @@ function init() {
       const model = gltf.scene;
       scene.add(model);
 
-      // Auto-center & fit
       const box = new THREE.Box3().setFromObject(model);
       const size = box.getSize(new THREE.Vector3()).length();
       const center = box.getCenter(new THREE.Vector3());
@@ -102,10 +96,4 @@ function onWindowResize() {
 
 function animate() {
   requestAnimationFrame(animate);
-  controls.update();
-  renderer.render(scene, camera);
-}
-</script>
-
-</body>
-</html>
+  controls.update
